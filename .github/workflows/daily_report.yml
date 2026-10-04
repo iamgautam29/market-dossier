@@ -1,0 +1,37 @@
+name: Generate Daily Indian Market Dossier
+
+on:
+schedule:
+# 7:00 PM IST (19:00 IST) = 13:30 UTC, Monday to Friday
+- cron: '30 13 * * 1-5'
+workflow_dispatch: # Allows manual one-click trigger anytime
+
+jobs:
+build-and-publish:
+runs-on: ubuntu-latest
+permissions:
+contents: write
+
+steps:
+  - name: Checkout Repository
+    uses: actions/checkout@v4
+
+  - name: Set up Python
+    uses: actions/setup-python@v5
+    with:
+      python-version: '3.11'
+
+  - name: Install Dependencies
+    run: |
+      pip install requests
+
+  - name: Run Automated Market Dossier Pipeline
+    run: |
+      python daily_report_generator.py
+
+  - name: Commit & Push Updated Dossier
+    run: |
+      git config --global user.name "MarketDossierBot"
+      git config --global user.email "bot@marketdossier.local"
+      git add daily_market_dossier.html index.html || true
+      git diff --staged --quiet || (git commit -m "Auto-generate Daily Market Dossier [skip ci]" && git push)
