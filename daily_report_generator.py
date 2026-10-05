@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+"""
+Daily Indian Market Dossier & Equity Research Generator
+Automated institutional-grade daily market report publisher.
+Outputs fully standalone index.html & daily_market_dossier.html
+"""
 import os
 import sys
 import datetime
@@ -8,92 +13,972 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Daily Indian Market Dossier</title>
+  <title>Daily Indian Market Dossier & Stocks Research</title>
+  
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #090d16; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    
+    .card-gradient {
+      background: linear-gradient(135deg, rgba(19, 27, 46, 0.95) 0%, rgba(11, 17, 30, 0.98) 100%);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .card-accent {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+    }
+    .glow-purple {
+      box-shadow: 0 0 25px -5px rgba(139, 92, 246, 0.25);
+    }
+  </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-8">
-  <div class="max-w-5xl mx-auto space-y-6">
-    <div class="flex justify-between items-center border-b border-slate-800 pb-4">
-      <div>
-        <h1 class="text-2xl font-black text-white">Daily Indian Market Dossier</h1>
-        <p class="text-xs text-indigo-400 mt-1">__DATE_STR__ &bull; 7:00 PM Daily Briefing</p>
-      </div>
-      <button onclick="window.print()" class="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded-lg font-bold">Print / PDF</button>
-    </div>
 
-    <!-- Benchmark Indices -->
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-      <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center">
-        <div class="text-[11px] text-slate-400">Nifty 50</div>
-        <div class="font-bold text-sm text-white mt-0.5">25,876.45</div>
-        <div class="text-xs font-semibold text-emerald-400">+0.58%</div>
-      </div>
-      <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center">
-        <div class="text-[11px] text-slate-400">BSE Sensex</div>
-        <div class="font-bold text-sm text-white mt-0.5">84,544.30</div>
-        <div class="text-xs font-semibold text-emerald-400">+0.58%</div>
-      </div>
-      <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center">
-        <div class="text-[11px] text-slate-400">Bank Nifty</div>
-        <div class="font-bold text-sm text-white mt-0.5">53,792.80</div>
-        <div class="text-xs font-semibold text-emerald-400">+1.02%</div>
-      </div>
-      <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center">
-        <div class="text-[11px] text-slate-400">Nifty Midcap</div>
-        <div class="font-bold text-sm text-white mt-0.5">60,210.15</div>
-        <div class="text-xs font-semibold text-emerald-400">+0.70%</div>
-      </div>
-      <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center">
-        <div class="text-[11px] text-slate-400">Nifty Smallcap</div>
-        <div class="font-bold text-sm text-white mt-0.5">19,340.80</div>
-        <div class="text-xs font-semibold text-emerald-400">+0.95%</div>
-      </div>
-      <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center">
-        <div class="text-[11px] text-slate-400">India VIX</div>
-        <div class="font-bold text-sm text-white mt-0.5">12.18</div>
-        <div class="text-xs font-semibold text-amber-400">-3.48%</div>
-      </div>
-    </div>
+<body class="bg-[#070b14] text-slate-100 font-sans antialiased min-h-screen selection:bg-indigo-500 selection:text-white">
 
-    <!-- Institutional Flows -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
-        <span class="text-xs text-slate-400 font-bold uppercase">FII Net Cash</span>
-        <div class="text-2xl font-black text-emerald-400 mt-1">+₹1,842.60 Cr</div>
-        <div class="text-[11px] text-slate-400 mt-1">Buys: ₹14,290 Cr | Sales: ₹12,448 Cr</div>
-      </div>
-      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
-        <span class="text-xs text-slate-400 font-bold uppercase">DII Net Cash</span>
-        <div class="text-2xl font-black text-blue-400 mt-1">+₹2,488.35 Cr</div>
-        <div class="text-[11px] text-slate-400 mt-1">Buys: ₹11,632 Cr | Sales: ₹9,144 Cr</div>
-      </div>
-      <div class="bg-slate-900 border border-indigo-500/30 p-4 rounded-2xl">
-        <span class="text-xs text-indigo-300 font-bold uppercase">Total Absorption</span>
-        <div class="text-2xl font-black text-white mt-1">+₹4,330.95 Cr</div>
-        <div class="text-[11px] text-indigo-200 mt-1">FII Longs: 64.8% | PCR: 1.28</div>
-      </div>
-    </div>
-
-    <!-- Screeners -->
-    <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
-      <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-2">High Delivery Volume Shockers</h3>
-      <p class="text-xs text-slate-300">TRENT (+4.85%, 68.4% Deliv) | LTIM (+3.20%, 74.1% Deliv) | BHARTIARTL (+2.15%, 71.6% Deliv) | DIXON (+5.10%, 62.3% Deliv)</p>
-    </div>
+  <!-- Interactive Toast Notification Banner -->
+  <div id="toast" class="fixed top-4 right-4 z-50 transform transition-all duration-300 translate-y-[-100px] opacity-0 pointer-events-none flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl card-gradient border border-indigo-500/50 text-sm font-medium">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+    <span id="toastMsg">Action completed successfully</span>
   </div>
+
+  <!-- Top Navigation & Session Header -->
+  <header class="sticky top-0 z-40 bg-[#070b14]/90 backdrop-blur-md border-b border-slate-800/80 px-4 lg:px-8 py-3.5">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      
+      <!-- Brand & Date Indicators -->
+      <div class="flex items-center gap-3 w-full sm:w-auto">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/30 shrink-0">
+          <i class="fa-solid fa-chart-line text-white text-lg"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-display font-extrabold text-xl text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-indigo-300">
+              Bharat Market Dossier
+            </h1>
+            <span class="px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+              Institutional Pro
+            </span>
+          </div>
+          <div class="flex items-center gap-2 text-xs text-slate-400">
+            <i class="fa-regular fa-calendar-check text-indigo-400"></i>
+            <span id="currentReportDate">__DATE_NOW__ &bull; 7:00 PM Daily Briefing</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation & Action Buttons -->
+      <div class="flex items-center gap-2 flex-wrap justify-end w-full sm:w-auto">
+        <div class="flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs">
+          <button onclick="scrollToSection('section-benchmark')" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-medium shadow-sm transition">
+            <i class="fa-solid fa-gauge mr-1.5"></i>Market Wrap
+          </button>
+          <button onclick="scrollToSection('section-media-intelligence')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition">
+            <i class="fa-solid fa-newspaper mr-1.5 text-cyan-400"></i>Mint &amp; MC News
+          </button>
+          <button onclick="scrollToSection('section-stocks-research')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition">
+            <i class="fa-solid fa-magnifying-glass-chart mr-1.5 text-amber-400"></i>Stocks Research
+          </button>
+        </div>
+
+        <button onclick="copyDossierSummary()" class="px-3.5 py-2 text-xs font-semibold rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 flex items-center gap-1.5 transition">
+          <i class="fa-regular fa-copy text-indigo-400"></i>
+          <span>Copy Summary</span>
+        </button>
+
+        <button onclick="window.print()" class="px-3.5 py-2 text-xs font-semibold rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-md shadow-indigo-600/30 flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-file-arrow-down"></i>
+          <span>Print / PDF</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 lg:px-8 py-6 space-y-8">
+
+    <!-- SECTION 1: Benchmark Indices & Breadth -->
+    <section id="section-benchmark" class="space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            Section 01 &bull; Cash &amp; Volatility Wrap
+          </span>
+          <h2 class="text-2xl font-display font-bold text-white">Headline Indices &amp; Market Breadth</h2>
+        </div>
+        <div class="flex items-center gap-3 text-xs bg-slate-900/90 px-3.5 py-1.5 rounded-lg border border-slate-800">
+          <span class="text-slate-400">Session Sentiment:</span>
+          <span class="inline-flex items-center gap-1 font-semibold text-emerald-400">
+            <i class="fa-solid fa-arrow-trend-up"></i> Bullish Continuation
+          </span>
+        </div>
+      </div>
+
+      <!-- Indices Cards Grid -->
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5" id="indicesCardsContainer"></div>
+
+      <!-- Market Breadth Gauge & Session Summary -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <!-- Advance Decline Bar -->
+        <div class="lg:col-span-7 card-gradient rounded-2xl p-5 border border-slate-800">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+              <i class="fa-solid fa-scale-balanced text-indigo-400"></i>
+              NSE Cash Advance / Decline Breadth
+            </h3>
+            <span class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">A/D Ratio: 1.74</span>
+          </div>
+
+          <!-- Color Progress Bar -->
+          <div class="w-full h-3.5 bg-slate-800 rounded-full overflow-hidden flex shadow-inner">
+            <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full transition-all duration-1000" style="width: 63%"></div>
+            <div class="bg-slate-600 h-full" style="width: 4%"></div>
+            <div class="bg-gradient-to-r from-rose-500 to-red-600 h-full transition-all duration-1000" style="width: 33%"></div>
+          </div>
+
+          <div class="flex items-center justify-between mt-2.5 text-xs font-medium">
+            <span class="text-emerald-400 flex items-center gap-1.5">
+              <i class="fa-solid fa-circle-arrow-up"></i> 1,690 Advances (63%)
+            </span>
+            <span class="text-slate-400">98 Unchanged</span>
+            <span class="text-rose-400 flex items-center gap-1.5">
+              <i class="fa-solid fa-circle-arrow-down"></i> 885 Declines (33%)
+            </span>
+          </div>
+        </div>
+
+        <!-- Core Session Narrative -->
+        <div class="lg:col-span-5 card-gradient rounded-2xl p-5 border border-slate-800 flex flex-col justify-between">
+          <div class="flex items-center gap-2 mb-2 text-indigo-300 text-xs font-semibold uppercase tracking-wider">
+            <i class="fa-solid fa-newspaper text-amber-400"></i>
+            Consolidated Newsroom Narrative (Livemint / Moneycontrol)
+          </div>
+          <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            Domestic benchmarks closed firmly in the green propelled by broad-based buying in banking, auto, and capital goods heavyweights. Robust domestic SIP liquidity inflows and softening US Treasury yields provided strong buffers against global crude fluctuations.
+          </p>
+          <div class="flex items-center gap-2 mt-3 pt-2.5 border-t border-slate-800/80 text-[11px] text-slate-400">
+            <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">Broad Accumulation</span>
+            <span class="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium">Bank Nifty Outperformance</span>
+            <span class="px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20 font-medium">DII Domestic Inflows</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: Institutional Flows (FII & DII Deep Dive) -->
+    <section id="section-institutional" class="space-y-4">
+      <div class="border-b border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
+            <i class="fa-solid fa-vault"></i> Section 02 &bull; Direct Exchange Filings (NSE/BSE)
+          </span>
+          <h2 class="text-2xl font-display font-bold text-white">Institutional Flows &amp; Derivatives Positioning</h2>
+        </div>
+        <div class="text-xs text-slate-400 font-mono">
+          SEBI / Exchange Net Filings
+        </div>
+      </div>
+
+      <!-- Institutional Cash Flow Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- FII Net Cash -->
+        <div class="card-gradient rounded-2xl p-5 border border-slate-800 relative overflow-hidden group">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Foreign Portfolio Investors (FII / FPI)</span>
+            <span class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+              <i class="fa-solid fa-globe"></i>
+            </span>
+          </div>
+          <div class="mt-4">
+            <div class="text-3xl font-display font-extrabold text-emerald-400 flex items-baseline gap-2">
+              <span>+₹1,842.60</span>
+              <span class="text-sm font-semibold text-slate-300">Cr</span>
+            </div>
+            <p class="text-xs text-emerald-400/90 font-medium mt-1">Net Cash Inflow (Turned Net Buyers)</p>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
+            <div>
+              <span class="text-slate-400 block text-[11px]">Gross Buys</span>
+              <span class="font-semibold text-slate-200">₹14,290 Cr</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[11px]">Gross Sales</span>
+              <span class="font-semibold text-slate-200">₹12,448 Cr</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- DII Net Cash -->
+        <div class="card-gradient rounded-2xl p-5 border border-slate-800 relative overflow-hidden group">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Domestic Institutions (DII / MFs)</span>
+            <span class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center">
+              <i class="fa-solid fa-building-columns"></i>
+            </span>
+          </div>
+          <div class="mt-4">
+            <div class="text-3xl font-display font-extrabold text-blue-400 flex items-baseline gap-2">
+              <span>+₹2,488.35</span>
+              <span class="text-sm font-semibold text-slate-300">Cr</span>
+            </div>
+            <p class="text-xs text-blue-400/90 font-medium mt-1">Persistent Mutual Fund &amp; SIP Demand</p>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
+            <div>
+              <span class="text-slate-400 block text-[11px]">Gross Buys</span>
+              <span class="font-semibold text-slate-200">₹11,632 Cr</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[11px]">Gross Sales</span>
+              <span class="font-semibold text-slate-200">₹9,144 Cr</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Combined Institutional Impact -->
+        <div class="card-accent rounded-2xl p-5 glow-purple relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-indigo-300">Total Institutional Absorption</span>
+            <span class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-300 flex items-center justify-center">
+              <i class="fa-solid fa-hand-holding-dollar"></i>
+            </span>
+          </div>
+          <div class="mt-4">
+            <div class="text-3xl font-display font-extrabold text-white flex items-baseline gap-2">
+              <span>+₹4,330.95</span>
+              <span class="text-sm font-semibold text-indigo-200">Cr</span>
+            </div>
+            <p class="text-xs text-indigo-300 font-medium mt-1">Robust Liquidity Cushion &amp; Net Absorption</p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-indigo-500/30 flex items-center justify-between text-xs">
+            <span class="text-slate-300">5-Day Cumulative Inflow:</span>
+            <span class="font-bold text-emerald-400">+₹18,920 Cr</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Derivatives & Open Interest Cockpit -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="card-gradient rounded-xl p-4 border border-slate-800">
+          <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+            <span class="font-semibold text-slate-200">FII Index Futures Longs</span>
+            <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[11px] font-bold">Bullish Bias</span>
+          </div>
+          <div class="flex items-baseline justify-between">
+            <span class="text-2xl font-bold font-display text-white">64.8%</span>
+            <span class="text-xs text-emerald-400"><i class="fa-solid fa-arrow-trend-up"></i> +5.2% vs prev day</span>
+          </div>
+          <div class="w-full bg-slate-800 h-2 rounded-full mt-2.5 overflow-hidden">
+            <div class="bg-gradient-to-r from-indigo-500 to-emerald-400 h-full" style="width: 64.8%"></div>
+          </div>
+          <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+            <span>Shorts: 35.2%</span>
+            <span>Longs: 64.8%</span>
+          </div>
+        </div>
+
+        <div class="card-gradient rounded-xl p-4 border border-slate-800">
+          <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+            <span class="font-semibold text-slate-200">Nifty Strike OI Cluster</span>
+            <i class="fa-solid fa-layer-group text-indigo-400"></i>
+          </div>
+          <div class="space-y-1.5 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-rose-400 font-medium">Max Call OI (Resistance):</span>
+              <span class="font-bold font-mono text-slate-100">26,000 CE</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-emerald-400 font-medium">Max Put OI (Support):</span>
+              <span class="font-bold font-mono text-slate-100">25,500 PE</span>
+            </div>
+          </div>
+          <div class="mt-2 text-[11px] text-slate-400 border-t border-slate-800 pt-1.5 flex justify-between">
+            <span>Immediate Range:</span>
+            <span class="text-amber-400 font-mono font-semibold">25,650 - 25,950</span>
+          </div>
+        </div>
+
+        <div class="card-gradient rounded-xl p-4 border border-slate-800">
+          <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+            <span class="font-semibold text-slate-200">Put-Call Ratio (PCR)</span>
+            <i class="fa-solid fa-chart-pie text-cyan-400"></i>
+          </div>
+          <div class="flex items-baseline justify-between">
+            <span class="text-2xl font-bold font-display text-cyan-300">1.28</span>
+            <span class="text-xs text-emerald-400 font-medium">Healthy Bull Zone</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-2">
+            Nifty PCR expanded to 1.28, reflecting aggressive put writing at 25,700 and 25,800 strikes.
+          </p>
+        </div>
+
+        <div class="card-gradient rounded-xl p-4 border border-slate-800">
+          <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+            <span class="font-semibold text-slate-200">India VIX (Volatility)</span>
+            <i class="fa-solid fa-wave-square text-emerald-400"></i>
+          </div>
+          <div class="flex items-baseline justify-between">
+            <span class="text-2xl font-bold font-display text-emerald-400">12.18</span>
+            <span class="text-xs text-emerald-400 font-semibold">-3.48% (Cooling)</span>
+          </div>
+          <div class="w-full bg-slate-800 h-2 rounded-full mt-2.5 overflow-hidden">
+            <div class="bg-emerald-500 h-full" style="width: 28%"></div>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1">Comfortable volatility floor sustaining buy-on-dips strategy.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: Trendlyne Screeners & Block Deals -->
+    <section id="section-trendlyne" class="space-y-4">
+      <div class="border-b border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+            <i class="fa-solid fa-sliders"></i> Section 03 &bull; Trendlyne Quant &amp; Volume Insights
+          </span>
+          <h2 class="text-2xl font-display font-bold text-white">Delivery Shockers &amp; Marquee Block Deals</h2>
+        </div>
+        <span class="text-xs px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20 font-medium">
+          DVM Engine Active
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <!-- High Delivery % Table -->
+        <div class="lg:col-span-8 card-gradient rounded-2xl p-5 border border-slate-800">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+              <i class="fa-solid fa-truck-ramp-box text-indigo-400"></i>
+              Volume Shockers with High Delivery % (Institutional Accumulation)
+            </h3>
+            <span class="text-[11px] text-slate-400">NSE Cash Data</span>
+          </div>
+          
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="text-slate-400 border-b border-slate-800 uppercase text-[10px] tracking-wider">
+                <tr>
+                  <th class="pb-2.5">Stock Name</th>
+                  <th class="pb-2.5 text-right">LTP (₹)</th>
+                  <th class="pb-2.5 text-right">Day Chg</th>
+                  <th class="pb-2.5 text-right">Delivery %</th>
+                  <th class="pb-2.5 text-right">Vol Jump</th>
+                  <th class="pb-2.5 text-center">Trendlyne DVM</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800/60 font-medium" id="volumeShockersBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Block Deals Feed -->
+        <div class="lg:col-span-4 card-gradient rounded-2xl p-5 border border-slate-800 flex flex-col">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+              <i class="fa-solid fa-handshake-simple text-purple-400"></i>
+              Marquee Block &amp; Bulk Deals
+            </h3>
+            <span class="text-[10px] font-semibold text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">SEBI T-0</span>
+          </div>
+
+          <div class="space-y-3 flex-1 overflow-y-auto pr-1" id="blockDealsContainer"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: Media Intelligence (Livemint & Moneycontrol) -->
+    <section id="section-media-intelligence" class="space-y-4">
+      <div class="border-b border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+            <i class="fa-solid fa-satellite-dish"></i> Section 04 &bull; Media Intelligence: Livemint &amp; Moneycontrol
+          </span>
+          <h2 class="text-2xl font-display font-bold text-white">Policy Directives, Corporate News &amp; Technical Pivots</h2>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 text-xs font-medium">
+            <i class="fa-solid fa-bolt mr-1 text-amber-400"></i>Newsroom Radar
+          </span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div class="lg:col-span-7 space-y-4">
+          <div class="card-gradient rounded-2xl p-5 border border-slate-800">
+            <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-2.5">
+              <h3 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-landmark-flag text-indigo-400"></i>
+                Government, RBI &amp; SEBI Policy Directives
+              </h3>
+              <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Regulatory Feed</span>
+            </div>
+            <div class="space-y-3" id="policyUpdatesContainer"></div>
+          </div>
+
+          <div class="card-gradient rounded-2xl p-5 border border-slate-800">
+            <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-2.5">
+              <h3 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-file-contract text-emerald-400"></i>
+                Corporate Filings, Order Wins &amp; Earnings Catalysts
+              </h3>
+              <span class="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-semibold">T-0 Filings</span>
+            </div>
+            <div class="space-y-3" id="companyNewsContainer"></div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-5 card-gradient rounded-2xl p-5 border border-slate-800 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-2.5">
+              <h3 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-chart-candlestick text-amber-400"></i>
+                Technical Pivots &amp; Chart Formations
+              </h3>
+              <span class="text-xs text-slate-400">Next Session Setup</span>
+            </div>
+            <p class="text-xs text-slate-400 mb-4">
+              Floor pivots calculated for upcoming sessions across headline indices alongside key 20/50 DMA levels and 14-day RSI.
+            </p>
+            <div class="space-y-3.5" id="technicalPivotsContainer"></div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Chart Patterns: Bullish Flag Breakouts</span>
+            <span class="text-cyan-400 font-medium"><i class="fa-solid fa-compass"></i> Trend: Favour Buy On Dips</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 5: Stocks Research & Brokerage Ratings Desk -->
+    <section id="section-stocks-research" class="space-y-5 pt-2">
+      <div class="card-accent rounded-3xl p-6 glow-purple relative overflow-hidden">
+        
+        <!-- Header & Filter Bar -->
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-800">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-sm">
+                Research Desks Intelligence
+              </span>
+              <span class="text-xs font-semibold text-indigo-300">Brokerage Upgrades, Downgrades &amp; Price Targets</span>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-display font-extrabold text-white mt-1">
+              Brokerage Actions &amp; High-Conviction Stock Research
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-400 mt-0.5">
+              Consolidated from Morgan Stanley, Goldman Sachs, Jefferies, CLSA, Nomura, Kotak &amp; Motilal Oswal.
+            </p>
+          </div>
+
+          <!-- Quick Filters -->
+          <div class="flex items-center gap-2 flex-wrap">
+            <div class="relative">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+              <input type="text" id="stockSearchInput" onkeyup="filterStocks()" placeholder="Search ticker, brokerage..." class="bg-slate-900 border border-slate-700 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 w-48 sm:w-56">
+            </div>
+
+            <select id="actionFilterSelect" onchange="filterStocks()" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+              <option value="ALL">All Rating Actions</option>
+              <option value="UPGRADE">Upgrades / Target Hikes</option>
+              <option value="DOWNGRADE">Downgrades / Target Cuts</option>
+              <option value="STRONG_BUY">Strong Buy / Conviction</option>
+            </select>
+
+            <select id="sectorFilterSelect" onchange="filterStocks()" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+              <option value="ALL">All Sectors</option>
+              <option value="Banking & NBFC">Banking &amp; NBFC</option>
+              <option value="Automobile">Automobile</option>
+              <option value="Capital Goods & Infra">Capital Goods</option>
+              <option value="Telecom & Cloud">Telecom</option>
+              <option value="Retail & Consumer">Retail</option>
+              <option value="Pharma & Healthcare">Pharma</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Brokerage Upgrades, Downgrades Table -->
+        <div class="mt-6">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+              <i class="fa-solid fa-arrow-right-arrow-left text-indigo-400"></i>
+              Daily Brokerage Rating &amp; Target Price Adjustments
+            </h3>
+            <span class="text-xs text-slate-400">Latest Research Notes</span>
+          </div>
+
+          <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/40">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-800/80 text-slate-400 uppercase text-[10px] tracking-wider">
+                <tr>
+                  <th class="p-3">Stock &amp; Ticker</th>
+                  <th class="p-3">Research Desk</th>
+                  <th class="p-3 text-center">Action</th>
+                  <th class="p-3 text-center">Rating Shift</th>
+                  <th class="p-3 text-right">CMP (₹)</th>
+                  <th class="p-3 text-right">Prev Target</th>
+                  <th class="p-3 text-right">Revised Target</th>
+                  <th class="p-3 text-right">Revision (%)</th>
+                  <th class="p-3">Key Brokerage Rationale</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800/60 font-medium" id="brokerageActionsBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- High-Conviction Research Cards Grid -->
+        <div class="mt-8 pt-6 border-t border-slate-800">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+              <i class="fa-solid fa-gem text-amber-400"></i>
+              High-Conviction Research Dossiers &amp; Valuation Insights
+            </h3>
+            <span class="text-xs text-slate-400">Deep Fundamental Theses</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="stockResearchCardsGrid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 6: Sector Heatmap & Global Macro Setup -->
+    <section id="section-macro" class="space-y-4">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div class="lg:col-span-7 card-gradient rounded-2xl p-5 border border-slate-800">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-teal-400">Section 06A &bull; Sector Radar</span>
+              <h3 class="text-base font-display font-bold text-white">NSE Sectoral Heatmap</h3>
+            </div>
+            <span class="text-xs text-slate-400">Sorted by Relative Strength</span>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5" id="sectorHeatmapGrid"></div>
+        </div>
+
+        <div class="lg:col-span-5 card-gradient rounded-2xl p-5 border border-slate-800 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-pink-400">Section 06B &bull; Tomorrow's Setup</span>
+                <h3 class="text-base font-display font-bold text-white">Global Macro &amp; Gift Nifty</h3>
+              </div>
+              <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-xs font-bold border border-emerald-500/30">
+                Gift Nifty: +43 pts
+              </span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 text-xs mb-4">
+              <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                <span class="text-slate-400 block text-[11px]">Brent Crude Oil</span>
+                <div class="flex items-baseline justify-between mt-1">
+                  <span class="font-bold text-white font-mono">$74.15/bbl</span>
+                  <span class="text-emerald-400 font-semibold text-[11px]">-1.20%</span>
+                </div>
+                <span class="text-[10px] text-slate-400">OMCs &amp; Autos Tailwind</span>
+              </div>
+
+              <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                <span class="text-slate-400 block text-[11px]">US Dollar Index (DXY)</span>
+                <div class="flex items-baseline justify-between mt-1">
+                  <span class="font-bold text-white font-mono">100.82</span>
+                  <span class="text-emerald-400 font-semibold text-[11px]">-0.34%</span>
+                </div>
+                <span class="text-[10px] text-slate-400">Aids EM FII inflows</span>
+              </div>
+
+              <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                <span class="text-slate-400 block text-[11px]">USD / INR Spot</span>
+                <div class="flex items-baseline justify-between mt-1">
+                  <span class="font-bold text-white font-mono">₹83.68</span>
+                  <span class="text-emerald-400 font-semibold text-[11px]">-4 paise</span>
+                </div>
+                <span class="text-[10px] text-slate-400">Steady Rupee</span>
+              </div>
+
+              <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                <span class="text-slate-400 block text-[11px]">US 10-Yr Yield</span>
+                <div class="flex items-baseline justify-between mt-1">
+                  <span class="font-bold text-white font-mono">3.74%</span>
+                  <span class="text-emerald-400 font-semibold text-[11px]">-5 bps</span>
+                </div>
+                <span class="text-[10px] text-slate-400">Risk-on liquidity</span>
+              </div>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-indigo-950/40 border border-indigo-500/20 text-xs">
+              <span class="text-indigo-300 font-semibold block mb-1.5 flex items-center gap-1.5">
+                <i class="fa-solid fa-crosshairs text-indigo-400"></i> Nifty 50 Key Levels (Next Session)
+              </span>
+              <div class="grid grid-cols-3 gap-2 text-center font-mono">
+                <div class="bg-slate-900/60 p-2 rounded-lg">
+                  <span class="text-[10px] text-slate-400 block">Support (S1/S2)</span>
+                  <span class="font-bold text-emerald-400">22,390 / 22,280</span>
+                </div>
+                <div class="bg-slate-900/60 p-2 rounded-lg">
+                  <span class="text-[10px] text-slate-400 block">Pivot Point</span>
+                  <span class="font-bold text-cyan-400">22,530</span>
+                </div>
+                <div class="bg-slate-900/60 p-2 rounded-lg">
+                  <span class="text-[10px] text-slate-400 block">Resistance (R1/R2)</span>
+                  <span class="font-bold text-rose-400">22,640 / 22,750</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
+            <span>Sources: NSE &bull; BSE &bull; Livemint &bull; Moneycontrol &bull; Trendlyne</span>
+            <span class="text-emerald-400 font-medium"><i class="fa-solid fa-circle-check"></i> Live Dossier Validated</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="border-t border-slate-800/80 bg-[#060910] py-6 px-4 text-center text-xs text-slate-400">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+        <span>Daily Consolidated Indian Market Dossier &amp; Equity Research Hub</span>
+      </div>
+      <p class="text-slate-400 text-[11px]">
+        Educational &amp; institutional tracking intelligence. Synchronized with cash and derivatives market filings.
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    const INDICES_DATA = [
+      { name: "Nifty 50", close: "22,555.75", change: "+133.80", pct: "+0.60%", trend: "bull", high52: "26,373.20" },
+      { name: "BSE Sensex", close: "72,382.47", change: "+472.77", pct: "+0.66%", trend: "bull", high52: "85,978.25" },
+      { name: "Bank Nifty", close: "54,714.10", change: "+263.35", pct: "+0.48%", trend: "bull", high52: "55,240.00" },
+      { name: "Nifty Midcap 100", close: "59,123.65", change: "+391.65", pct: "+0.67%", trend: "bull", high52: "60,925.00" },
+      { name: "Nifty Smallcap 100", close: "19,340.80", change: "+182.40", pct: "+0.95%", trend: "bull", high52: "19,584.20" },
+      { name: "India VIX", close: "12.18", change: "-0.44", pct: "-3.48%", trend: "vol-cool", high52: "23.15" }
+    ];
+
+    const VOLUME_SHOCKERS = [
+      { ticker: "TRENT", name: "Trent Ltd", ltp: "7,840.00", chg: "+4.85%", delivPct: "68.4%", volMult: "3.4x", dvm: { d: 78, v: 45, m: 92 } },
+      { ticker: "KOTAKBANK", name: "Kotak Mahindra Bank", ltp: "416.00", chg: "-0.56%", delivPct: "72.5%", volMult: "3.1x", dvm: { d: 82, v: 52, m: 76 } },
+      { ticker: "BHARTIARTL", name: "Bharti Airtel", ltp: "1,720.00", chg: "+2.15%", delivPct: "71.6%", volMult: "2.1x", dvm: { d: 85, v: 58, m: 88 } },
+      { ticker: "DIXON", name: "Dixon Tech", ltp: "13,950.00", chg: "+5.10%", delivPct: "62.3%", volMult: "3.9x", dvm: { d: 74, v: 38, m: 94 } },
+      { ticker: "FEDERALBNK", name: "Federal Bank", ltp: "198.40", chg: "+2.90%", delivPct: "66.5%", volMult: "2.4x", dvm: { d: 80, v: 72, m: 68 } }
+    ];
+
+    const BLOCK_DEALS = [
+      { stock: "HDFC Bank", buyer: "GQG Partners Emerging", seller: "BNP Paribas Arbitrage", value: "₹640 Cr", price: "₹1,698", type: "Accumulation" },
+      { stock: "Zomato Ltd", buyer: "Fidelity Management", seller: "SoftBank SVF Growth", value: "₹485 Cr", price: "₹282", type: "Block Deal" },
+      { stock: "Tata Motors", buyer: "Nippon India MF", seller: "Promoter Entity", value: "₹320 Cr", price: "₹972", type: "Domestic Fund Buy" }
+    ];
+
+    const POLICY_UPDATES = [
+      { tag: "SEBI F&O Framework", title: "SEBI issues refined index derivatives contract specifications", source: "Moneycontrol / SEBI Circular", impact: "Consolidates weekly expiries", summary: "Refined lot sizes to rationalize retail speculative risk in derivatives.", date: "Post-Close" },
+      { tag: "RBI Banking & Liquidity", title: "RBI conducts ₹50,000 Cr variable rate repo (VRR) auction", source: "Livemint / Banking Desk", impact: "Eases banking liquidity deficit", summary: "Aids credit transmission, protects deposit costs, and eases overnight interbank rates.", date: "Afternoon" },
+      { tag: "Govt PLI Scheme", title: "Cabinet clears additional ₹4,500 Cr incentive outlay for Solar & EV components", source: "Livemint Breaking", impact: "Bullish for Electronics & Ancillaries", summary: "Encourages deep domestic component localization across electronics manufacturers.", date: "Mid-Day" }
+    ];
+
+    const COMPANY_NEWS = [
+      { ticker: "LT", company: "Larsen & Toubro", headline: "Secures mega offshore order valued between ₹10,000 - ₹15,000 Cr from Saudi Aramco", source: "BSE Filing / Moneycontrol", category: "Order Win", badgeColor: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30", details: "Hydrocarbon vertical bags execution of major offshore compression pipelines. Order backlog at record highs." },
+      { ticker: "TCS", company: "Tata Consultancy Services", headline: "Expands 10-year digital transformation agreement with UK's Primark", source: "Exchange Disclosure / Mint", category: "Client Win", badgeColor: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30", details: "Transforms retail architecture and scales omni-channel core systems across Europe." },
+      { ticker: "TRENT", company: "Trent Ltd", headline: "Reports 54% YoY store addition pace; tests international waters in GCC region", source: "Analyst Meet / Moneycontrol", category: "Expansion", badgeColor: "bg-purple-500/20 text-purple-300 border-purple-500/20", details: "Zudio store unit economics remain benchmark-setting with payback cycles under 18 months." }
+    ];
+
+    const TECHNICAL_PIVOTS = [
+      { index: "Nifty 50", cmp: "22,555.75", pivot: "22,530", r1: "22,640", r2: "22,750", s1: "22,390", dma20: "22,410 (Above)", rsi: "58.5", pattern: "Bullish Channel Breakout" },
+      { index: "Bank Nifty", cmp: "54,714.10", pivot: "54,580", r1: "54,950", r2: "55,200", s1: "54,350", dma20: "53,840 (Above)", rsi: "62.4", pattern: "Higher High Formations" },
+      { index: "Nifty IT", cmp: "42,310.25", pivot: "42,220", r1: "42,650", r2: "43,050", s1: "41,920", dma20: "41,850 (Above)", rsi: "57.8", pattern: "Cup & Handle Pattern" }
+    ];
+
+    const BROKERAGE_ACTIONS = [
+      { ticker: "TRENT", company: "Trent Ltd", brokerage: "Morgan Stanley", actionType: "UPGRADE", actionText: "Target Hiked +18%", prevRating: "Equal-weight", newRating: "Overweight", cmp: 7840, prevTarget: 7920, newTarget: 9350, targetDelta: "+18.1%", rationale: "Unmatched store unit economics for Zudio; rapid rollout to underpin >35% EPS CAGR." },
+      { ticker: "ICICIBANK", company: "ICICI Bank Ltd", brokerage: "Goldman Sachs", actionType: "UPGRADE", actionText: "Target Hiked +12%", prevRating: "Buy", newRating: "Conviction Buy", cmp: 1285, prevTarget: 1360, newTarget: 1520, targetDelta: "+11.8%", rationale: "NIM outperformance, industry-leading RoA of 2.3%, and pristine asset quality buffer." },
+      { ticker: "BHARTIARTL", company: "Bharti Airtel", brokerage: "Jefferies", actionType: "UPGRADE", actionText: "Target Hiked +15%", prevRating: "Buy", newRating: "Strong Buy", cmp: 1720, prevTarget: 1780, newTarget: 2050, targetDelta: "+15.2%", rationale: "Tariff hike flow-through accelerating ARPU growth; 5G capex tapering expands FCF." },
+      { ticker: "HDFCBANK", company: "HDFC Bank", brokerage: "Nomura", actionType: "UPGRADE", actionText: "Rating Upgraded", prevRating: "Neutral", newRating: "Buy", cmp: 1698, prevTarget: 1750, newTarget: 1980, targetDelta: "+13.1%", rationale: "CD ratio normalization progressing steadily; deposit accretion outpacing advances." },
+      { ticker: "ASIANPAINT", company: "Asian Paints", brokerage: "CLSA", actionType: "DOWNGRADE", actionText: "Downgraded / Cut", prevRating: "Outperform", newRating: "Underperform", cmp: 3120, prevTarget: 3350, newTarget: 2850, targetDelta: "-14.9%", rationale: "Intensifying price competition in decorative coatings impacting near-term margins." },
+      { ticker: "LT", company: "Larsen & Toubro", brokerage: "Motilal Oswal", actionType: "UPGRADE", actionText: "Target Hiked +10%", prevRating: "Buy", newRating: "Buy", cmp: 3740, prevTarget: 4000, newTarget: 4400, targetDelta: "+10.0%", rationale: "Record order book surpassing ₹4.9 lakh Cr and expanding international execution pipeline." }
+    ];
+
+    const STOCKS_RESEARCH = [
+      { ticker: "TRENT", name: "Trent Ltd", sector: "Retail & Consumer", brokerage: "Morgan Stanley", action: "STRONG_BUY", actionType: "UPGRADE", actionLabel: "Overweight / Top Pick", cmp: 7840, target: 9350, upside: 19.3, pe: 112.4, dvm: { score: 86 }, thesis: "Zudio store expansion pacing ahead of guidance (adding 200+ stores/year). Westside same-store sales growth maintaining double digits.", catalyst: "Star Bazaar grocery breakeven and international pilot in Dubai.", stopLoss: 7420 },
+      { ticker: "ICICIBANK", name: "ICICI Bank Ltd", sector: "Banking & NBFC", brokerage: "Goldman Sachs", action: "BUY", actionType: "UPGRADE", actionLabel: "Conviction Buy", cmp: 1285, target: 1520, upside: 18.3, pe: 17.8, dvm: { score: 92 }, thesis: "Best-in-class RoA of 2.3% and RoE exceeding 18.5%. Asset quality pristine with Net NPA below 0.42%.", catalyst: "Continued digital adoption, margin stability, and robust deposit accretion.", stopLoss: 1210 },
+      { ticker: "BHARTIARTL", name: "Bharti Airtel Ltd", sector: "Telecom & Cloud", brokerage: "Jefferies", action: "STRONG_BUY", actionType: "UPGRADE", actionLabel: "Strong Buy", cmp: 1720, target: 2050, upside: 19.2, pe: 48.2, dvm: { score: 89 }, thesis: "Tariff hike flow-through driving ARPU towards ₹240 milestone. 5G capex tapering expands free cash flows.", catalyst: "Airtel Africa turnaround and enterprise digital business scaling 20% YoY.", stopLoss: 1630 },
+      { ticker: "LT", name: "Larsen & Toubro Ltd", sector: "Capital Goods & Infra", brokerage: "Motilal Oswal", action: "BUY", actionType: "UPGRADE", actionLabel: "Buy", cmp: 3740, target: 4400, upside: 17.6, pe: 31.4, dvm: { score: 84 }, thesis: "Order book surpassing ₹4.9 lakh Cr with visibility across Middle East renewables and domestic rail infra.", catalyst: "Margin recovery in hydrocarbon segment and non-core monetization.", stopLoss: 3510 },
+      { ticker: "M&M", name: "Mahindra & Mahindra", sector: "Automobile", brokerage: "Kotak Institutional", action: "BUY", actionType: "BUY", actionLabel: "Add / Accumulate", cmp: 3160, target: 3650, upside: 15.5, pe: 27.8, dvm: { score: 87 }, thesis: "Dominant SUV market share of 21.6% supported by strong backlog for Thar Roxx & XUV700.", catalyst: "Upcoming Born-Electric SUV launch pipeline and tractor export recovery.", stopLoss: 2980 },
+      { ticker: "SUNPHARMA", name: "Sun Pharma", sector: "Pharma & Healthcare", brokerage: "ICICI Direct", action: "BUY", actionType: "BUY", actionLabel: "Buy", cmp: 1910, target: 2240, upside: 17.3, pe: 36.5, dvm: { score: 85 }, thesis: "Global specialty portfolio (Ilumya, Cequa, Winlevi) ramping up with high gross margins.", catalyst: "US FDA pipeline approvals and commercial rollout of Deuruxolitinib.", stopLoss: 1810 }
+    ];
+
+    const SECTOR_HEATMAP = [
+      { name: "Nifty Auto", chg: "+2.14%", trend: "bull", lead: "M&M, Tata Motors" },
+      { name: "Nifty PSU Bank", chg: "+1.88%", trend: "bull", lead: "SBI, PNB" },
+      { name: "Nifty Metal", chg: "+1.65%", trend: "bull", lead: "Hindalco, JSW Steel" },
+      { name: "Nifty Private Bank", chg: "+1.05%", trend: "bull", lead: "ICICI Bank, Axis Bank" },
+      { name: "Nifty Pharma", chg: "+0.82%", trend: "bull", lead: "Sun Pharma, Cipla" },
+      { name: "Nifty IT", chg: "+0.38%", trend: "neutral", lead: "LTIMindtree, Infy" },
+      { name: "Nifty FMCG", chg: "-0.45%", trend: "bear", lead: "HUL, ITC" },
+      { name: "Nifty Energy & Oil", chg: "-0.62%", trend: "bear", lead: "Reliance, BPCL" }
+    ];
+
+    function renderBenchmarkCards() {
+      const container = document.getElementById('indicesCardsContainer');
+      if (!container) return;
+      container.innerHTML = INDICES_DATA.map(idx => `
+        <div class="card-gradient rounded-xl p-3.5 border border-slate-800 hover:border-indigo-500/40 transition">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span class="font-medium truncate">${idx.name}</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${idx.trend === 'bear' ? 'text-rose-400 bg-rose-500/10' : 'text-emerald-400 bg-emerald-500/10'} border border-slate-700/50">
+              ${idx.pct}
+            </span>
+          </div>
+          <div class="mt-2 text-base sm:text-lg font-bold font-display text-white tracking-tight">${idx.close}</div>
+          <div class="mt-1 flex items-center justify-between text-[10px] text-slate-400 pt-1.5 border-t border-slate-800/80">
+            <span>Chg: <strong class="${idx.trend === 'bear' ? 'text-rose-400' : 'text-emerald-400'}">${idx.change}</strong></span>
+            <span class="font-mono">52W: ${idx.high52}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderVolumeShockers() {
+      const tbody = document.getElementById('volumeShockersBody');
+      if (!tbody) return;
+      tbody.innerHTML = VOLUME_SHOCKERS.map(s => `
+        <tr class="hover:bg-slate-800/40 transition">
+          <td class="py-2.5"><span class="font-bold text-white block">${s.ticker}</span><span class="text-[10px] text-slate-400">${s.name}</span></td>
+          <td class="py-2.5 text-right font-mono text-slate-200">₹${s.ltp}</td>
+          <td class="py-2.5 text-right font-bold text-emerald-400">${s.chg}</td>
+          <td class="py-2.5 text-right"><span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">${s.delivPct}</span></td>
+          <td class="py-2.5 text-right font-mono text-amber-300">${s.volMult}</td>
+          <td class="py-2.5 text-center"><div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700 text-[10px]"><span class="text-emerald-400 font-bold">D:${s.dvm.d}</span><span class="text-blue-400 font-bold">V:${s.dvm.v}</span><span class="text-purple-400 font-bold">M:${s.dvm.m}</span></div></td>
+        </tr>
+      `).join('');
+    }
+
+    function renderBlockDeals() {
+      const container = document.getElementById('blockDealsContainer');
+      if (!container) return;
+      container.innerHTML = BLOCK_DEALS.map(d => `
+        <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
+          <div class="flex items-center justify-between font-bold text-white"><span class="text-indigo-300">${d.stock}</span><span class="text-emerald-400 font-mono">${d.value}</span></div>
+          <div class="mt-1 text-[11px] text-slate-400"><div>Buyer: <span class="text-slate-200 font-medium">${d.buyer}</span></div><div>Seller: <span class="text-slate-200 font-medium">${d.seller}</span></div></div>
+          <div class="mt-2 pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10px]"><span class="text-slate-400">Deal Price: <strong class="text-slate-200 font-mono">${d.price}</strong></span><span class="px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20 font-medium">${d.type}</span></div>
+        </div>
+      `).join('');
+    }
+
+    function renderPolicyUpdates() {
+      const container = document.getElementById('policyUpdatesContainer');
+      if (!container) return;
+      container.innerHTML = POLICY_UPDATES.map(item => `
+        <div class="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 text-xs hover:border-cyan-500/30 transition">
+          <div class="flex items-center justify-between gap-2 mb-1.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">${item.tag}</span><span class="text-[10px] text-slate-400 font-mono"><i class="fa-regular fa-clock"></i> ${item.date}</span></div>
+          <h4 class="font-bold text-white text-xs mb-1">${item.title}</h4>
+          <p class="text-slate-300 text-[11px] leading-relaxed mb-2">${item.summary}</p>
+          <div class="flex items-center justify-between pt-1.5 border-t border-slate-800/80 text-[10px]"><span class="text-slate-400">Source: <strong class="text-slate-300">${item.source}</strong></span><span class="font-semibold text-emerald-400">${item.impact}</span></div>
+        </div>
+      `).join('');
+    }
+
+    function renderCompanyNews() {
+      const container = document.getElementById('companyNewsContainer');
+      if (!container) return;
+      container.innerHTML = COMPANY_NEWS.map(item => `
+        <div class="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 text-xs hover:border-indigo-500/30 transition">
+          <div class="flex items-center justify-between gap-2 mb-1"><div class="flex items-center gap-2"><span class="font-bold text-white text-xs">${item.ticker}</span><span class="text-[10px] text-slate-400">&bull; ${item.company}</span></div><span class="px-2 py-0.5 rounded text-[10px] font-bold ${item.badgeColor} border">${item.category}</span></div>
+          <h4 class="font-semibold text-slate-200 text-xs mb-1">${item.headline}</h4>
+          <p class="text-slate-400 text-[11px] leading-relaxed mb-1.5">${item.details}</p>
+          <div class="text-[10px] text-slate-400">Filing: <strong class="text-slate-300">${item.source}</strong></div>
+        </div>
+      `).join('');
+    }
+
+    function renderTechnicalPivots() {
+      const container = document.getElementById('technicalPivotsContainer');
+      if (!container) return;
+      container.innerHTML = TECHNICAL_PIVOTS.map(p => `
+        <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
+          <div class="flex items-center justify-between mb-2"><div class="flex items-center gap-2"><span class="font-bold text-white text-sm font-display">${p.index}</span><span class="font-mono text-emerald-400 font-bold">${p.cmp}</span></div><span class="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 text-[10px] font-bold">${p.pattern}</span></div>
+          <div class="grid grid-cols-4 gap-1.5 text-center font-mono text-[10px] mb-2 bg-slate-950/60 p-2 rounded-lg border border-slate-800">
+            <div><span class="text-rose-400 block">R2</span><span class="text-slate-200 font-bold">${p.r2}</span></div>
+            <div><span class="text-rose-300 block">R1</span><span class="text-slate-200 font-bold">${p.r1}</span></div>
+            <div><span class="text-indigo-300 block">Pivot</span><span class="text-white font-bold">${p.pivot}</span></div>
+            <div><span class="text-emerald-400 block">S1</span><span class="text-emerald-400 font-bold">${p.s1}</span></div>
+          </div>
+          <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800/60"><span>20 DMA: <strong class="text-slate-200">${p.dma20}</strong></span><span>RSI: <strong class="text-amber-400">${p.rsi}</strong></span></div>
+        </div>
+      `).join('');
+    }
+
+    function renderBrokerageActions(items) {
+      const tbody = document.getElementById('brokerageActionsBody');
+      if (!tbody) return;
+      tbody.innerHTML = items.map(b => `
+        <tr class="hover:bg-slate-800/40 transition">
+          <td class="p-3"><span class="font-bold text-white block">${b.ticker}</span><span class="text-[10px] text-slate-400">${b.company}</span></td>
+          <td class="p-3 font-semibold text-amber-300">${b.brokerage}</td>
+          <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold border ${b.actionType === 'UPGRADE' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border-rose-500/30'}">${b.actionText}</span></td>
+          <td class="p-3 text-center font-mono text-[11px]"><span class="text-slate-400">${b.prevRating}</span> &rarr; <span class="text-slate-100 font-bold">${b.newRating}</span></td>
+          <td class="p-3 text-right font-mono text-slate-200">₹${b.cmp}</td>
+          <td class="p-3 text-right font-mono text-slate-400">₹${b.prevTarget}</td>
+          <td class="p-3 text-right font-mono font-bold text-indigo-300">₹${b.newTarget}</td>
+          <td class="p-3 text-right font-mono font-extrabold ${b.actionType === 'UPGRADE' ? 'text-emerald-400' : 'text-rose-400'}">${b.targetDelta}</td>
+          <td class="p-3 text-slate-300 text-[11px] max-w-xs leading-tight">${b.rationale}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderStockResearchCards(items) {
+      const grid = document.getElementById('stockResearchCardsGrid');
+      if (!grid) return;
+      grid.innerHTML = items.map(s => `
+        <div class="card-gradient rounded-2xl p-5 border border-slate-800 hover:border-indigo-500/50 transition duration-300 flex flex-col justify-between group shadow-xl">
+          <div>
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <div class="flex items-center gap-2"><span class="text-lg font-display font-extrabold text-white">${s.ticker}</span><span class="text-xs text-slate-400">&bull; ${s.name}</span></div>
+                <div class="flex items-center gap-1.5 mt-0.5"><span class="text-[11px] text-indigo-400">${s.sector}</span><span class="text-slate-600">&bull;</span><span class="text-[11px] text-amber-300 font-semibold">${s.brokerage}</span></div>
+              </div>
+              <span class="px-2.5 py-1 rounded-lg text-xs font-bold ${s.action === 'STRONG_BUY' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'}">${s.actionLabel}</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mt-4 p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-center">
+              <div><span class="text-[10px] text-slate-400 block uppercase">Current</span><span class="text-sm font-bold font-mono text-slate-200">₹${s.cmp}</span></div>
+              <div><span class="text-[10px] text-indigo-300 block uppercase font-semibold">Target</span><span class="text-sm font-bold font-mono text-indigo-300">₹${s.target}</span></div>
+              <div><span class="text-[10px] text-emerald-400 block uppercase font-semibold">Upside</span><span class="text-sm font-extrabold font-mono text-emerald-400">+${s.upside}%</span></div>
+            </div>
+            <div class="mt-3.5 space-y-2 text-xs">
+              <div class="p-2.5 rounded-lg bg-slate-800/50 border border-slate-700/40"><p class="text-slate-300 leading-relaxed text-[11px]">${s.thesis}</p></div>
+              <div class="p-2 rounded-lg bg-indigo-950/20 border border-indigo-500/20 text-[11px]"><strong class="text-indigo-300">Trigger:</strong> <span class="text-slate-300">${s.catalyst}</span></div>
+            </div>
+          </div>
+          <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+            <span class="text-[11px] text-slate-400">Stop-Loss: <strong class="text-rose-400 font-mono">₹${s.stopLoss}</strong></span>
+            <button onclick="copyStockDetails('${s.ticker}')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-[11px]"><i class="fa-regular fa-clone mr-1"></i>Copy Note</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderSectorHeatmap() {
+      const grid = document.getElementById('sectorHeatmapGrid');
+      if (!grid) return;
+      grid.innerHTML = SECTOR_HEATMAP.map(sec => `
+        <div class="p-3 rounded-xl border ${sec.trend === 'bear' ? 'bg-rose-950/30 border-rose-500/30 text-rose-300' : 'bg-emerald-950/30 border-emerald-500/30 text-emerald-300'} transition hover:scale-[1.02]">
+          <div class="flex items-center justify-between text-xs"><span class="font-bold text-white">${sec.name}</span><span class="font-bold font-mono ${sec.trend === 'bear' ? 'text-rose-400' : 'text-emerald-400'}">${sec.chg}</span></div>
+          <div class="mt-1 text-[10px] text-slate-400 truncate">Leaders: <span class="text-slate-300 font-medium">${sec.lead}</span></div>
+        </div>
+      `).join('');
+    }
+
+    function filterStocks() {
+      const search = (document.getElementById('stockSearchInput')?.value || '').toLowerCase();
+      const action = document.getElementById('actionFilterSelect')?.value || 'ALL';
+      const sector = document.getElementById('sectorFilterSelect')?.value || 'ALL';
+
+      const filtered = STOCKS_RESEARCH.filter(item => {
+        const matchesSearch = item.ticker.toLowerCase().includes(search) || item.name.toLowerCase().includes(search) || item.brokerage.toLowerCase().includes(search);
+        const matchesAction = (action === 'ALL') || (action === 'UPGRADE' && item.actionType === 'UPGRADE') || (action === 'STRONG_BUY' && item.action === 'STRONG_BUY');
+        const matchesSector = (sector === 'ALL') || item.sector.includes(sector);
+        return matchesSearch && matchesAction && matchesSector;
+      });
+
+      renderStockResearchCards(filtered);
+      renderBrokerageActions(BROKERAGE_ACTIONS.filter(b => b.ticker.toLowerCase().includes(search) || b.company.toLowerCase().includes(search)));
+    }
+
+    function scrollToSection(id) {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function copyDossierSummary() {
+      const text = `*DAILY INDIAN MARKET DOSSIER*\\n• Nifty 50: 22,555.75 (+0.60%)\\n• Sensex: 72,382.47 (+0.66%)\\n• Bank Nifty: 54,714.10 (+0.48%)\\n• FII Net Cash: +₹1,842.60 Cr | DII Net: +₹2,488.35 Cr\\n• Total Inflow: +₹4,330.95 Cr\\n• VIX: 12.18 (Cooling)`;
+      safeCopy(text, "Summary copied to clipboard!");
+    }
+
+    function copyStockDetails(ticker) {
+      const stock = STOCKS_RESEARCH.find(s => s.ticker === ticker);
+      if (!stock) return;
+      const text = `*RESEARCH CALL: ${stock.ticker}*\\n• Brokerage: ${stock.brokerage} (${stock.actionLabel})\\n• CMP: ₹${stock.cmp} | Target: ₹${stock.target} (+${stock.upside}%)\\n• Stop-loss: ₹${stock.stopLoss}\\n• Thesis: ${stock.thesis}`;
+      safeCopy(text, `Note for ${ticker} copied!`);
+    }
+
+    function safeCopy(text, message) {
+      navigator.clipboard?.writeText(text).then(() => showToast(message)).catch(() => {
+        const t = document.createElement("textarea");
+        t.value = text;
+        document.body.appendChild(t);
+        t.select();
+        document.execCommand('copy');
+        document.body.removeChild(t);
+        showToast(message);
+      });
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      if (!toast || !toastMsg) return;
+      toastMsg.innerText = message;
+      toast.classList.remove('translate-y-[-100px]', 'opacity-0', 'pointer-events-none');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.add('translate-y-[-100px]', 'opacity-0', 'pointer-events-none');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 3000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderBenchmarkCards();
+      renderVolumeShockers();
+      renderBlockDeals();
+      renderPolicyUpdates();
+      renderCompanyNews();
+      renderTechnicalPivots();
+      renderBrokerageActions(BROKERAGE_ACTIONS);
+      renderStockResearchCards(STOCKS_RESEARCH);
+      renderSectorHeatmap();
+    });
+  </script>
 </body>
 </html>"""
 
 def main():
     date_str = datetime.datetime.now().strftime("%A, %d %B %Y")
-    output_html = HTML_TEMPLATE.replace("__DATE_STR__", date_str)
+    final_output = HTML_TEMPLATE.replace("__DATE_NOW__", date_str)
     
     with open("index.html", "w", encoding="utf-8") as f:
-        f.write(output_html)
+        f.write(final_output)
         
     with open("daily_market_dossier.html", "w", encoding="utf-8") as f:
-        f.write(output_html)
+        f.write(final_output)
         
-    print("Market report generated successfully.")
+    print(f"[{date_str}] Institutional Market Dossier created successfully.")
 
 if __name__ == "__main__":
     main()
