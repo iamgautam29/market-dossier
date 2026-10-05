@@ -32,6 +32,7 @@ jobs:
         run: |
           git config --global user.name "Market Dossier Bot"
           git config --global user.email "bot@marketdossier.local"
+          git pull --rebase origin main || true
           git add index.html daily_market_dossier.html
           git commit -m "Auto-generate Daily Indian Market Dossier [$(date +'%Y-%m-%d %H:%M')]" || exit 0
           git push origin main
