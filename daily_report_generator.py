@@ -1,79 +1,99 @@
 #!/usr/bin/env python3
+import os
+import sys
 import datetime
 
+HTML_TEMPLATE = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Indian Market Dossier</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-8">
+  <div class="max-w-5xl mx-auto space-y-6">
+    <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+      <div>
+        <h1 class="text-2xl font-black text-white">Daily Indian Market Dossier</h1>
+        <p class="text-xs text-indigo-400 mt-1">__DATE_STR__ &bull; 7:00 PM Daily Briefing</p>
+      </div>
+      <button onclick="window.print()" class="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded-lg font-bold">Print / PDF</button>
+    </div>
+
+    <!-- Benchmark Indices -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center">
+        <div class="text-[11px] text-slate-400">Nifty 50</div>
+        <div class="font-bold text-sm text-white mt-0.5">25,876.45</div>
+        <div class="text-xs font-semibold text-emerald-400">+0.58%</div>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center">
+        <div class="text-[11px] text-slate-400">BSE Sensex</div>
+        <div class="font-bold text-sm text-white mt-0.5">84,544.30</div>
+        <div class="text-xs font-semibold text-emerald-400">+0.58%</div>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center">
+        <div class="text-[11px] text-slate-400">Bank Nifty</div>
+        <div class="font-bold text-sm text-white mt-0.5">53,792.80</div>
+        <div class="text-xs font-semibold text-emerald-400">+1.02%</div>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center">
+        <div class="text-[11px] text-slate-400">Nifty Midcap</div>
+        <div class="font-bold text-sm text-white mt-0.5">60,210.15</div>
+        <div class="text-xs font-semibold text-emerald-400">+0.70%</div>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center">
+        <div class="text-[11px] text-slate-400">Nifty Smallcap</div>
+        <div class="font-bold text-sm text-white mt-0.5">19,340.80</div>
+        <div class="text-xs font-semibold text-emerald-400">+0.95%</div>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center">
+        <div class="text-[11px] text-slate-400">India VIX</div>
+        <div class="font-bold text-sm text-white mt-0.5">12.18</div>
+        <div class="text-xs font-semibold text-amber-400">-3.48%</div>
+      </div>
+    </div>
+
+    <!-- Institutional Flows -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+        <span class="text-xs text-slate-400 font-bold uppercase">FII Net Cash</span>
+        <div class="text-2xl font-black text-emerald-400 mt-1">+₹1,842.60 Cr</div>
+        <div class="text-[11px] text-slate-400 mt-1">Buys: ₹14,290 Cr | Sales: ₹12,448 Cr</div>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+        <span class="text-xs text-slate-400 font-bold uppercase">DII Net Cash</span>
+        <div class="text-2xl font-black text-blue-400 mt-1">+₹2,488.35 Cr</div>
+        <div class="text-[11px] text-slate-400 mt-1">Buys: ₹11,632 Cr | Sales: ₹9,144 Cr</div>
+      </div>
+      <div class="bg-slate-900 border border-indigo-500/30 p-4 rounded-2xl">
+        <span class="text-xs text-indigo-300 font-bold uppercase">Total Absorption</span>
+        <div class="text-2xl font-black text-white mt-1">+₹4,330.95 Cr</div>
+        <div class="text-[11px] text-indigo-200 mt-1">FII Longs: 64.8% | PCR: 1.28</div>
+      </div>
+    </div>
+
+    <!-- Screeners -->
+    <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+      <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-2">High Delivery Volume Shockers</h3>
+      <p class="text-xs text-slate-300">TRENT (+4.85%, 68.4% Deliv) | LTIM (+3.20%, 74.1% Deliv) | BHARTIARTL (+2.15%, 71.6% Deliv) | DIXON (+5.10%, 62.3% Deliv)</p>
+    </div>
+  </div>
+</body>
+</html>"""
+
 def main():
-    date_str = datetime.datetime.now().strftime("%d %b %Y")
+    date_str = datetime.datetime.now().strftime("%A, %d %B %Y")
+    output_html = HTML_TEMPLATE.replace("__DATE_STR__", date_str)
     
-    html_lines = [
-        '',
-        '
-    ', '', ' ', ' ', f' ', ' ', '', '', '
-', '
-', '
-', '
-    Daily Indian Market Dossier
-', f'
-{date_str} • 7:00 PM Daily Briefing
+    with open("index.html", "w", encoding="utf-8") as f:
+        f.write(output_html)
+        
+    with open("daily_market_dossier.html", "w", encoding="utf-8") as f:
+        f.write(output_html)
+        
+    print("Market report generated successfully.")
 
-', '
-', ' ', '
-', '
-', '
-Nifty 50
-25,876.45
-+0.58%
-', '
-BSE Sensex
-84,544.30
-+0.58%
-', '
-Bank Nifty
-53,792.80
-+1.02%
-', '
-Nifty Midcap
-60,210.15
-+0.70%
-', '
-Nifty Smallcap
-19,340.80
-+0.95%
-', '
-India VIX
-12.18
--3.48%
-', '
-', '
-', '
-FII Net Cash
-+₹1,842.60 Cr
-Buys: ₹14,290 Cr | Sales: ₹12,448 Cr
-', '
-DII Net Cash
-+₹2,488.35 Cr
-Buys: ₹11,632 Cr | Sales: ₹9,144 Cr
-', '
-Total Absorption
-+₹4,330.95 Cr
-FII Longs: 64.8% | PCR: 1.28
-', '
-', '
-', '
-High Delivery Shockers
-', '
-TRENT (+4.85%, 68.4% Deliv) | LTIM (+3.20%, 74.1% Deliv) | BHARTIARTL (+2.15%, 71.6% Deliv) | DIXON (+5.10%, 62.3% Deliv)
-
-', '
-', '
-', '', '
-    '
-]
-
-content = "\n".join(html_lines)
-with open("index.html", "w", encoding="utf-8") as f:
-    f.write(content)
-with open("daily_market_dossier.html", "w", encoding="utf-8") as f:
-    f.write(content)
-print("Report generated successfully.")
-if name == "main":
-main()
+if __name__ == "__main__":
+    main()
