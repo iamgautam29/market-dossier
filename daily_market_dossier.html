@@ -1,14 +1,4 @@
-#!/usr/bin/env python3
-"""
-Daily Indian Market Dossier & Equity Research Generator
-Automated institutional-grade daily market report publisher.
-Outputs fully standalone index.html & daily_market_dossier.html
-"""
-import os
-import sys
-import datetime
-
-HTML_TEMPLATE = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -89,7 +79,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           </div>
           <div class="flex items-center gap-2 text-xs text-slate-400">
             <i class="fa-regular fa-calendar-check text-indigo-400"></i>
-            <span id="currentReportDate">__DATE_NOW__ &bull; 7:00 PM Daily Briefing</span>
+            <span id="currentReportDate">Tuesday, 06 October 2026 &bull; 7:00 PM Daily Briefing</span>
           </div>
         </div>
       </div>
@@ -590,7 +580,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 <h3 class="text-base font-display font-bold text-white">Global Macro &amp; Gift Nifty</h3>
               </div>
               <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-xs font-bold border border-emerald-500/30">
-                Gift Nifty: +74 pts
+                Gift Nifty: +43 pts
               </span>
             </div>
 
@@ -639,15 +629,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               <div class="grid grid-cols-3 gap-2 text-center font-mono">
                 <div class="bg-slate-900/60 p-2 rounded-lg">
                   <span class="text-[10px] text-slate-400 block">Support (S1/S2)</span>
-                  <span class="font-bold text-emerald-400">25,720 / 25,600</span>
+                  <span class="font-bold text-emerald-400">22,390 / 22,280</span>
                 </div>
                 <div class="bg-slate-900/60 p-2 rounded-lg">
                   <span class="text-[10px] text-slate-400 block">Pivot Point</span>
-                  <span class="font-bold text-cyan-400">25,840</span>
+                  <span class="font-bold text-cyan-400">22,530</span>
                 </div>
                 <div class="bg-slate-900/60 p-2 rounded-lg">
                   <span class="text-[10px] text-slate-400 block">Resistance (R1/R2)</span>
-                  <span class="font-bold text-rose-400">25,980 / 26,120</span>
+                  <span class="font-bold text-rose-400">22,640 / 22,750</span>
                 </div>
               </div>
             </div>
@@ -677,17 +667,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
   <script>
     const INDICES_DATA = [
-      { name: "Nifty 50", close: "25,876.45", change: "+148.20", pct: "+0.58%", trend: "bull", high52: "26,277.35" },
-      { name: "BSE Sensex", close: "84,544.30", change: "+484.15", pct: "+0.58%", trend: "bull", high52: "85,978.25" },
-      { name: "Bank Nifty", close: "53,792.80", change: "+542.90", pct: "+1.02%", trend: "bull", high52: "54,467.35" },
-      { name: "Nifty Midcap 100", close: "60,210.15", change: "+418.50", pct: "+0.70%", trend: "bull", high52: "60,925.00" },
+      { name: "Nifty 50", close: "22,555.75", change: "+133.80", pct: "+0.60%", trend: "bull", high52: "26,373.20" },
+      { name: "BSE Sensex", close: "72,382.47", change: "+472.77", pct: "+0.66%", trend: "bull", high52: "85,978.25" },
+      { name: "Bank Nifty", close: "54,714.10", change: "+263.35", pct: "+0.48%", trend: "bull", high52: "55,240.00" },
+      { name: "Nifty Midcap 100", close: "59,123.65", change: "+391.65", pct: "+0.67%", trend: "bull", high52: "60,925.00" },
       { name: "Nifty Smallcap 100", close: "19,340.80", change: "+182.40", pct: "+0.95%", trend: "bull", high52: "19,584.20" },
       { name: "India VIX", close: "12.18", change: "-0.44", pct: "-3.48%", trend: "vol-cool", high52: "23.15" }
     ];
 
     const VOLUME_SHOCKERS = [
       { ticker: "TRENT", name: "Trent Ltd", ltp: "7,840.00", chg: "+4.85%", delivPct: "68.4%", volMult: "3.4x", dvm: { d: 78, v: 45, m: 92 } },
-      { ticker: "LTIM", name: "LTIMindtree", ltp: "6,210.50", chg: "+3.20%", delivPct: "74.1%", volMult: "2.8x", dvm: { d: 82, v: 52, m: 76 } },
+      { ticker: "KOTAKBANK", name: "Kotak Mahindra Bank", ltp: "416.00", chg: "-0.56%", delivPct: "72.5%", volMult: "3.1x", dvm: { d: 82, v: 52, m: 76 } },
       { ticker: "BHARTIARTL", name: "Bharti Airtel", ltp: "1,720.00", chg: "+2.15%", delivPct: "71.6%", volMult: "2.1x", dvm: { d: 85, v: 58, m: 88 } },
       { ticker: "DIXON", name: "Dixon Tech", ltp: "13,950.00", chg: "+5.10%", delivPct: "62.3%", volMult: "3.9x", dvm: { d: 74, v: 38, m: 94 } },
       { ticker: "FEDERALBNK", name: "Federal Bank", ltp: "198.40", chg: "+2.90%", delivPct: "66.5%", volMult: "2.4x", dvm: { d: 80, v: 72, m: 68 } }
@@ -712,8 +702,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     ];
 
     const TECHNICAL_PIVOTS = [
-      { index: "Nifty 50", cmp: "25,876.45", pivot: "25,840", r1: "25,980", r2: "26,120", s1: "25,720", dma20: "25,410 (Above)", rsi: "63.5", pattern: "Bullish Flag Breakout" },
-      { index: "Bank Nifty", cmp: "53,792.80", pivot: "53,580", r1: "54,150", r2: "54,480", s1: "53,250", dma20: "52,140 (Above)", rsi: "66.2", pattern: "Higher High Formations" },
+      { index: "Nifty 50", cmp: "22,555.75", pivot: "22,530", r1: "22,640", r2: "22,750", s1: "22,390", dma20: "22,410 (Above)", rsi: "58.5", pattern: "Bullish Channel Breakout" },
+      { index: "Bank Nifty", cmp: "54,714.10", pivot: "54,580", r1: "54,950", r2: "55,200", s1: "54,350", dma20: "53,840 (Above)", rsi: "62.4", pattern: "Higher High Formations" },
       { index: "Nifty IT", cmp: "42,310.25", pivot: "42,220", r1: "42,650", r2: "43,050", s1: "41,920", dma20: "41,850 (Above)", rsi: "57.8", pattern: "Cup & Handle Pattern" }
     ];
 
@@ -917,14 +907,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     function copyDossierSummary() {
-      const text = `*DAILY INDIAN MARKET DOSSIER*\\n• Nifty 50: 25,876.45 (+0.58%)\\n• Bank Nifty: 53,792.80 (+1.02%)\\n• FII Net Cash: +₹1,842.60 Cr | DII Net: +₹2,488.35 Cr\\n• Total Inflow: +₹4,330.95 Cr\\n• VIX: 12.18 (Cooling)`;
+      const text = `*DAILY INDIAN MARKET DOSSIER*\n• Nifty 50: 22,555.75 (+0.60%)\n• Sensex: 72,382.47 (+0.66%)\n• Bank Nifty: 54,714.10 (+0.48%)\n• FII Net Cash: +₹1,842.60 Cr | DII Net: +₹2,488.35 Cr\n• Total Inflow: +₹4,330.95 Cr\n• VIX: 12.18 (Cooling)`;
       safeCopy(text, "Summary copied to clipboard!");
     }
 
     function copyStockDetails(ticker) {
       const stock = STOCKS_RESEARCH.find(s => s.ticker === ticker);
       if (!stock) return;
-      const text = `*RESEARCH CALL: ${stock.ticker}*\\n• Brokerage: ${stock.brokerage} (${stock.actionLabel})\\n• CMP: ₹${stock.cmp} | Target: ₹${stock.target} (+${stock.upside}%)\\n• Stop-loss: ₹${stock.stopLoss}\\n• Thesis: ${stock.thesis}`;
+      const text = `*RESEARCH CALL: ${stock.ticker}*\n• Brokerage: ${stock.brokerage} (${stock.actionLabel})\n• CMP: ₹${stock.cmp} | Target: ₹${stock.target} (+${stock.upside}%)\n• Stop-loss: ₹${stock.stopLoss}\n• Thesis: ${stock.thesis}`;
       safeCopy(text, `Note for ${ticker} copied!`);
     }
 
@@ -966,19 +956,4 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     });
   </script>
 </body>
-</html>"""
-
-def main():
-    date_str = datetime.datetime.now().strftime("%A, %d %B %Y")
-    final_output = HTML_TEMPLATE.replace("__DATE_NOW__", date_str)
-    
-    with open("index.html", "w", encoding="utf-8") as f:
-        f.write(final_output)
-        
-    with open("daily_market_dossier.html", "w", encoding="utf-8") as f:
-        f.write(final_output)
-        
-    print(f"[{date_str}] Institutional Market Dossier created successfully.")
-
-if __name__ == "__main__":
-    main()
+</html>
